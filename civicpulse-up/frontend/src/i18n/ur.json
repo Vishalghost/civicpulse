@@ -1,0 +1,20 @@
+{
+  "app_name": "CivicPulse UP",
+  "tagline": "شہری صحت پلیٹ فارم",
+  "drain": "نالی بند",
+  "garbage": "کوڑا",
+  "water": "آلودہ پانی",
+  "mosquito": "مچھر",
+  "yes": "ہاں",
+  "no": "نہیں",
+  "submit": "جمع کریں",
+  "thank_you": "شکریہ!",
+  "take_photo": "فوٹو لیں",
+  "home": "ہوم",
+  "emergency": "ہنگامی صورتحال",
+  "login": "لاگ ان",
+  "send_otp": "OTP بھیجیں",
+  "verify_otp": "OTP تصدیق کریں",
+  "enter_phone": "موبائل نمبر درج کریں",
+  "enter_otp": "OTP درج کریں"
+}
