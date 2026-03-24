@@ -217,11 +217,16 @@ function sqliteQuery(text, params = []) {
       return Promise.resolve({ rows })
     } else {
       const info = sqlite.prepare(sql).run(...safeParams)
-      // Simulate RETURNING * by fetching last inserted/updated row if possible
-      const rows = info.lastInsertRowid
-        ? [{ id: info.lastInsertRowid, ...Object.fromEntries(safeParams.map((v, i) => [i, v])) }]
-        : []
-      return Promise.resolve({ rows })
+      // Simulate RETURNING * — fetch the real row by rowid so we get proper named columns
+      if (info.lastInsertRowid) {
+        const tableMatch = sql.match(/INSERT\s+(?:OR\s+\w+\s+)?INTO\s+(\w+)/i)
+        if (tableMatch) {
+          const row = sqlite.prepare(`SELECT * FROM ${tableMatch[1]} WHERE rowid = ?`).get(info.lastInsertRowid)
+          return Promise.resolve({ rows: row ? [row] : [] })
+        }
+      }
+      // For UPDATE/DELETE — return empty rows (callers use findById to re-fetch if needed)
+      return Promise.resolve({ rows: [] })
     }
   } catch (err) {
     console.warn('[SQLite] Query error:', err.message, '\nSQL:', sql)
