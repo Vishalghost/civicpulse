@@ -55,6 +55,14 @@ export default function VoiceReporter({ onTranscript, lang }) {
   const handleStop = async () => {
     try {
       const blob = new Blob(chunksRef.current, { type: 'audio/webm' })
+
+      // Guard: don't send empty recordings
+      if (blob.size < 500) {
+        toast.error('Recording too short — hold the button and speak clearly 🎙️')
+        setProcessing(false)
+        return
+      }
+
       const base64 = await blobToBase64(blob)
 
       const res = await api.post('/voice/transcribe', {
@@ -65,16 +73,23 @@ export default function VoiceReporter({ onTranscript, lang }) {
         headers: { 'x-gemini-key': geminiKey }
       })
 
-      if (res.data.transcript) {
-        onTranscript(res.data.transcript)
+      const { transcript, success, fallback, message } = res.data
+
+      if (fallback || !success) {
+        // Graceful degradation — show message, don't crash
+        toast.error(message || 'आवाज़ पहचान विफल — कृपया फिर से बोलें')
+      } else if (transcript) {
+        onTranscript(transcript)
         toast.success('🎙️ आवाज़ पहचानी गई!')
       } else {
-        toast.error('Transcription empty — कृपया दोबारा बोलें')
+        toast('कोई आवाज़ नहीं मिली — फिर से बोलें', { icon: '🎙️' })
       }
     } catch (e) {
+      // Network error or unexpected crash — show toast, never propagate
       toast.error('Transcription failed: ' + (e.response?.data?.error || e.message))
+    } finally {
+      setProcessing(false)
     }
-    setProcessing(false)
   }
 
   return (

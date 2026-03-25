@@ -14,6 +14,9 @@ const publicRoutes = require('./routes/public')
 const mlRoutes = require('./routes/ml')
 const voiceRoutes = require('./routes/voice')
 const citizenRoutes = require('./routes/citizen')
+const spatialRoutes = require('./routes/spatial')
+const { router: eventsRouter } = require('./routes/events')
+const whatsappRoutes = require('./routes/whatsapp')
 
 // Jobs
 const { startSLAChecker } = require('./jobs/slaChecker')
@@ -44,6 +47,9 @@ app.use('/api/ml', mlRoutes)
 app.use('/api/voice', voiceRoutes)
 app.use('/api/wards', require('./routes/wards'))
 app.use('/api/citizen', citizenRoutes)
+app.use('/api/reports', spatialRoutes)  // spatial sub-routes (must register AFTER main reports)
+app.use('/api/events', eventsRouter)    // SSE live-sync
+app.use('/api/chatbot', whatsappRoutes) // WhatsApp webhook + emergency escalation (Agent 4)
 
 // Health check
 app.get('/health', (req, res) => res.json({ status: 'ok', service: 'CivicPulse Backend', time: new Date().toISOString() }))

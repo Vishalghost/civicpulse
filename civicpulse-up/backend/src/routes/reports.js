@@ -4,6 +4,7 @@ const multer = require('multer')
 const path = require('path')
 const { v4: uuidv4 } = require('uuid')
 const { authMiddleware } = require('../middleware/auth')
+const { sseEmit } = require('./events')
 
 // ── Model imports ──────────────────────────────────────────────────────────
 const Report = require('../models/Report')
@@ -65,6 +66,18 @@ router.post('/', authMiddleware, upload.single('photo'), async (req, res) => {
 
     // Create SLA record
     await SlaRecord.create(reportId)
+
+    // 🔴 Broadcast to all connected worker/official dashboards via SSE
+    sseEmit('report:new', {
+      query_id: queryId,
+      category,
+      ward_id: wardId,
+      lat: lat ? parseFloat(lat) : null,
+      lng: lng ? parseFloat(lng) : null,
+      status: 'submitted',
+      duplicate_count: 1,
+      sla_deadline: slaDeadline,
+    }, { targetWardId: wardId })
 
     res.status(201).json({ reportId, queryId, slaDeadline, message: 'Report submitted' })
   } catch (err) {
