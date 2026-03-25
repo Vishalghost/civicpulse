@@ -21,12 +21,15 @@ export default function WorkerHome() {
         <h1 style={{ fontSize: '1.2rem', fontWeight: 700 }}>{user?.name || 'कर्मचारी'}</h1>
         <p style={{ opacity: 0.7, fontSize: '0.85rem' }}>Ward {user?.ward_id || 1}</p>
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '1.25rem' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.75rem', marginBottom: '1.25rem' }}>
         <button className="card" style={{ cursor: 'pointer', textAlign: 'center', border: 'none', fontFamily: 'inherit' }} onClick={() => navigate('/worker/log')}>
-          <div style={{ fontSize: '2rem' }}>🎤</div><div style={{ fontWeight: 700, marginTop: '0.25rem' }}>Log Activity</div>
+          <div style={{ fontSize: '2rem' }}>🎤</div><div style={{ fontWeight: 700, marginTop: '0.25rem', fontSize: '0.85rem' }}>Log Activity</div>
         </button>
         <button className="card" style={{ cursor: 'pointer', textAlign: 'center', border: 'none', fontFamily: 'inherit' }} onClick={() => navigate('/worker/evidence')}>
-          <div style={{ fontSize: '2rem' }}>📷</div><div style={{ fontWeight: 700, marginTop: '0.25rem' }}>Evidence</div>
+          <div style={{ fontSize: '2rem' }}>📷</div><div style={{ fontWeight: 700, marginTop: '0.25rem', fontSize: '0.85rem' }}>Evidence</div>
+        </button>
+        <button className="card" style={{ cursor: 'pointer', textAlign: 'center', border: 'none', fontFamily: 'inherit', background: 'linear-gradient(135deg,#1a237e11,#7c4dff11)', borderTop: '3px solid #7c4dff' }} onClick={() => navigate('/worker/video')}>
+          <div style={{ fontSize: '2rem' }}>📹</div><div style={{ fontWeight: 700, marginTop: '0.25rem', fontSize: '0.85rem', color: '#7c4dff' }}>Live Video</div>
         </button>
       </div>
       <div className="card">

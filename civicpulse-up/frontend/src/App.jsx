@@ -21,6 +21,7 @@ import WorkerHome from './roles/worker/WorkerHome'
 import VoiceLogger from './roles/worker/VoiceLogger'
 import ActivityFeed from './roles/worker/ActivityFeed'
 import GeoEvidence from './roles/worker/GeoEvidence'
+import VideoEvidencePage from './roles/worker/VideoEvidencePage'
 
 // Official
 import OfficialLayout from './layouts/OfficialLayout'
@@ -79,6 +80,7 @@ function App() {
           <Route path="log" element={<VoiceLogger />} />
           <Route path="activities" element={<ActivityFeed />} />
           <Route path="evidence" element={<GeoEvidence />} />
+          <Route path="video" element={<VideoEvidencePage />} />
         </Route>
 
         {/* Official */}

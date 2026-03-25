@@ -32,6 +32,7 @@ export default function WorkerLayout() {
         <NavLink to="/worker/log"><span className="bottom-nav-icon">🎤</span><span>दर्ज करें</span></NavLink>
         <NavLink to="/worker/activities"><span className="bottom-nav-icon">📋</span><span>गतिविधि</span></NavLink>
         <NavLink to="/worker/evidence"><span className="bottom-nav-icon">📷</span><span>साक्ष्य</span></NavLink>
+        <NavLink to="/worker/video"><span className="bottom-nav-icon">📹</span><span>Video</span></NavLink>
       </nav>
     </div>
   )
