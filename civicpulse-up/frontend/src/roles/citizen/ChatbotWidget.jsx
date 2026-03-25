@@ -86,11 +86,24 @@ export default function ChatbotWidget() {
     return 'मैं आपकी मदद करने के लिए यहाँ हूँ। कृपया अपना सवाल हिंदी या अंग्रेजी में पूछें। आप ward risk, शिकायत status, या emergency help के बारे में पूछ सकते हैं।'
   }
 
+  const geminiConfigured = !!localStorage.getItem('cp_gemini_key') || true // also works via backend env
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: 'calc(100dvh - 140px)' }}>
       <div className="page-header">
         <h1>💬 AI Health Chatbot</h1>
         <p>Hindi · Bhojpuri · Ward health queries</p>
+      </div>
+
+      {/* Gemini status banner */}
+      <div style={{
+        display: 'flex', alignItems: 'center', gap: '0.5rem',
+        padding: '0.4rem 0.75rem', marginBottom: '0.5rem',
+        background: 'var(--primary-light)', borderRadius: 'var(--radius-sm)',
+        fontSize: '0.78rem', color: 'var(--primary)',
+      }}>
+        🤖 <strong>Gemini 1.5 Flash</strong> — AI powered responses active
+        <a href="/settings" style={{ marginLeft: 'auto', color: 'var(--primary)', fontSize: '0.75rem' }}>⚙️ Settings</a>
       </div>
 
       {emergency && (

@@ -31,7 +31,7 @@ router.post('/message', authMiddleware, async (req, res) => {
       return res.json({ reply, emergency: true })
     }
 
-    // Try Gemini first
+    // Try Gemini first — use key from header (Settings page) OR env file
     const geminiKey = req.headers['x-gemini-key'] || process.env.GEMINI_API_KEY
     if (geminiKey) {
       try {
@@ -39,6 +39,7 @@ router.post('/message', authMiddleware, async (req, res) => {
         const model = genAI.getGenerativeModel({
           model: 'gemini-1.5-flash',
           systemInstruction: SYSTEM_PROMPT,
+          generationConfig: { temperature: 0.7, maxOutputTokens: 300 },
         })
 
         // Build chat history for context
@@ -48,16 +49,27 @@ router.post('/message', authMiddleware, async (req, res) => {
         }))
 
         const chat = model.startChat({ history: chatHistory })
-        const result = await chat.sendMessage(
+
+        // Use Promise.race timeout — AbortController crashes Node.js on Windows
+        const apiCall = chat.sendMessage(
           `User is in Ward ${ward_id || req.user.ward_id || 1}, District ${req.user.district || 'Lucknow'}.\n${message}`
         )
+        const timeoutPromise = new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('Gemini timeout after 12s')), 12000)
+        )
+
+        const result = await Promise.race([apiCall, timeoutPromise])
         const reply = result.response.text()
+
         logChat(req.user, message, reply, false)
         return res.json({ reply, emergency: false, source: 'gemini' })
+
       } catch (gemErr) {
-        console.error('[Chatbot] Gemini error:', gemErr.message)
-        // Fall through to fallback
+        console.error('[Chatbot] Gemini error (will use fallback):', gemErr.message)
+        // Fall through to keyword fallback below
       }
+    } else {
+      console.warn('[Chatbot] No Gemini key — using fallback. Set GEMINI_API_KEY in .env or enter key in ⚙️ Settings.')
     }
 
     // Fallback keyword reply

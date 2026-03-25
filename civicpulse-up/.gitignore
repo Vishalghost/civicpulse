@@ -1,0 +1,62 @@
+# Dependencies
+node_modules/
+**/node_modules/
+.pnp
+.pnp.js
+
+# Environment secrets — NEVER commit these
+.env
+.env.local
+.env.production
+backend/.env
+frontend/.env
+
+# Build output
+dist/
+build/
+frontend/dist/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+ml-engine/__pycache__/
+
+# SQLite databases
+*.db
+*.sqlite
+*.sqlite3
+backend/civicpulse.db
+
+# Uploads / local media
+backend/uploads/*
+!backend/uploads/.gitkeep
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE
+.vscode/settings.json
+.idea/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+logs/
+
+# Test coverage
+coverage/
+.nyc_output/
+
+# Hardhat / Blockchain artifacts (compiled)
+blockchain/artifacts/
+blockchain/cache/
+
+# Temporary
+.tmp/
+tmp/
