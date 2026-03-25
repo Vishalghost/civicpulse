@@ -17,6 +17,7 @@ const citizenRoutes = require('./routes/citizen')
 const spatialRoutes = require('./routes/spatial')
 const { router: eventsRouter } = require('./routes/events')
 const whatsappRoutes = require('./routes/whatsapp')
+const videoRoutes    = require('./routes/video')
 
 // Jobs
 const { startSLAChecker } = require('./jobs/slaChecker')
@@ -26,7 +27,7 @@ const PORT = process.env.PORT || 3001
 
 // Middleware
 app.use(cors({ origin: process.env.FRONTEND_URL || '*', credentials: true }))
-app.use(express.json({ limit: '10mb' }))
+app.use(express.json({ limit: '110mb' }))
 app.use(express.urlencoded({ extended: true }))
 
 // Static uploads
@@ -50,6 +51,7 @@ app.use('/api/citizen', citizenRoutes)
 app.use('/api/reports', spatialRoutes)  // spatial sub-routes (must register AFTER main reports)
 app.use('/api/events', eventsRouter)    // SSE live-sync
 app.use('/api/chatbot', whatsappRoutes) // WhatsApp webhook + emergency escalation (Agent 4)
+app.use('/api/video',   videoRoutes)    // Video evidence upload & streaming
 
 // Health check
 app.get('/health', (req, res) => res.json({ status: 'ok', service: 'CivicPulse Backend', time: new Date().toISOString() }))

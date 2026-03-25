@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import toast from 'react-hot-toast'
 import api from '../../utils/api'
 import useAuthStore from '../../store/authStore'
+import VideoCapture from '../../components/VideoCapture'
 
 const speak = (text, lang = 'hi-IN', rate = 0.85) => {
   try {
@@ -29,6 +30,7 @@ export default function GeoEvidence() {
   const [location, setLocation] = useState(null)
   const [actionNote, setActionNote] = useState('')
   const [submitting, setSubmitting] = useState(false)
+  const [videoEvidenceId, setVideoEvidenceId] = useState(null)
 
   const beforeRef = useRef()
   const afterRef = useRef()
@@ -201,7 +203,7 @@ export default function GeoEvidence() {
         </div>
       )}
 
-      {/* SCREEN 3: Note + Submit */}
+      {/* SCREEN 3: Note + Video + Submit */}
       {step === 3 && (
         <div className="page-enter" style={{ maxWidth: 380, margin: '0 auto' }}>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', marginBottom: '1rem' }}>
@@ -211,7 +213,15 @@ export default function GeoEvidence() {
           <div className="alert-banner success" style={{ marginBottom: '1rem' }}>
             📍 GPS: {location ? `${location.lat.toFixed(4)}, ${location.lng.toFixed(4)}` : 'मिल रहा है...'}
           </div>
-          <div className="form-group">
+
+          {/* ── Video Evidence (optional) ── */}
+          <VideoCapture
+            reportId={selected?.query_id || selected?.id}
+            maxSeconds={60}
+            onUpload={id => setVideoEvidenceId(id)}
+          />
+
+          <div className="form-group" style={{ marginTop: '0.75rem' }}>
             <label className="form-label">🔊 क्या काम किया? (min 20 chars)</label>
             <textarea className="form-textarea" rows={3} placeholder="विवरण लिखें..."
               value={actionNote} onChange={e => setActionNote(e.target.value)} />
@@ -219,6 +229,11 @@ export default function GeoEvidence() {
               {actionNote.length} / 20 minimum
             </span>
           </div>
+          {videoEvidenceId && (
+            <div className="alert-banner info" style={{ marginBottom: '0.75rem', fontSize: '0.8rem' }}>
+              📹 वीडियो जुड़ा: <strong>{videoEvidenceId.slice(0, 8)}...</strong>
+            </div>
+          )}
           <div style={{ display: 'flex', gap: '0.75rem' }}>
             <button className="btn btn-outline" onClick={reset}>❌</button>
             <button className="btn btn-success btn-full btn-lg" onClick={handleSubmit} disabled={submitting}>
