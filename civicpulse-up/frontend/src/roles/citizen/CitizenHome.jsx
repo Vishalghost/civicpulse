@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import useAuthStore from '../../store/authStore'
 import api from '../../utils/api'
+import CitizenImpactCard from './CitizenImpactCard'
 
 export default function CitizenHome() {
   const { user } = useAuthStore()
@@ -36,6 +37,11 @@ export default function CitizenHome() {
           <div style={{ fontWeight: 700, marginTop: '0.25rem', fontSize: '0.9rem' }}>वार्ड बोर्ड</div>
           <div className="stat-label">Ward Board</div>
         </button>
+        <button className="stat-card" onClick={() => navigate('/citizen/map')} style={{ cursor: 'pointer' }}>
+          <div style={{ fontSize: '1.75rem' }}>🗺️</div>
+          <div style={{ fontWeight: 700, marginTop: '0.25rem', fontSize: '0.9rem' }}>नक्शा</div>
+          <div className="stat-label">OSM Pin Map</div>
+        </button>
         <button className="stat-card" onClick={() => navigate('/citizen/chat')} style={{ cursor: 'pointer' }}>
           <div style={{ fontSize: '1.75rem' }}>💬</div>
           <div style={{ fontWeight: 700, marginTop: '0.25rem', fontSize: '0.9rem' }}>AI चैट</div>
@@ -60,6 +66,9 @@ export default function CitizenHome() {
 
       {/* Ward Risk */}
       <WardRiskCard wardId={user?.ward_id || 1} />
+
+      {/* Community Impact / Gamification */}
+      <CitizenImpactCard />
     </div>
   )
 }

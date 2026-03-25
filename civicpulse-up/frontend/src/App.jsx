@@ -13,6 +13,7 @@ import ReportForm from './roles/citizen/ReportForm'
 import QueryStatus from './roles/citizen/QueryStatus'
 import PublicBoard from './roles/citizen/PublicBoard'
 import ChatbotWidget from './roles/citizen/ChatbotWidget'
+import CitizenPinMap from './roles/citizen/CitizenPinMap'
 
 // Worker
 import WorkerLayout from './layouts/WorkerLayout'
@@ -66,6 +67,7 @@ function App() {
           <Route path="report" element={<ReportForm />} />
           <Route path="status/:queryId" element={<QueryStatus />} />
           <Route path="board" element={<PublicBoard />} />
+          <Route path="map" element={<CitizenPinMap />} />
           <Route path="chat" element={<ChatbotWidget />} />
         </Route>
 

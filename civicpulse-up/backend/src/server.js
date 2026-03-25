@@ -13,6 +13,7 @@ const chatbotRoutes = require('./routes/chatbot')
 const publicRoutes = require('./routes/public')
 const mlRoutes = require('./routes/ml')
 const voiceRoutes = require('./routes/voice')
+const citizenRoutes = require('./routes/citizen')
 
 // Jobs
 const { startSLAChecker } = require('./jobs/slaChecker')
@@ -42,6 +43,7 @@ app.use('/api/public', publicRoutes)
 app.use('/api/ml', mlRoutes)
 app.use('/api/voice', voiceRoutes)
 app.use('/api/wards', require('./routes/wards'))
+app.use('/api/citizen', citizenRoutes)
 
 // Health check
 app.get('/health', (req, res) => res.json({ status: 'ok', service: 'CivicPulse Backend', time: new Date().toISOString() }))

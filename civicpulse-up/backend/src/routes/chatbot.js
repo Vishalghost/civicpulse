@@ -90,14 +90,63 @@ function fallbackReply(lower, wardId) {
   return 'मैं CivicPulse हूँ — Risk, शिकायत status, या emergency के बारे में पूछें।'
 }
 
-// POST /api/chatbot/escalate — WhatsApp handoff
+// POST /api/chatbot/escalate — WhatsApp handoff with enriched payload
 router.post('/escalate', authMiddleware, async (req, res) => {
   try {
+    const { history = [], location = null } = req.body
+    const wardId = req.user.ward_id || 1
+    const userName = req.user.name || 'नागरिक'
+    const userPhone = req.user.phone || 'UNKNOWN'
+    const district = (req.user.district || 'lucknow').toUpperCase()
+
+    // Fetch current ward risk (best-effort, don't block on failure)
+    let riskLevel = 'UNKNOWN'
+    let riskScore = ''
+    try {
+      const db = require('../db/sqlite')
+      const row = db.prepare('SELECT risk_level, risk_score FROM wards WHERE id = ?').get(wardId)
+      if (row) { riskLevel = row.risk_level; riskScore = `(${Math.round(row.risk_score * 100)}%)` }
+    } catch { /* non-critical */ }
+
+    // Build last-3-messages summary
+    const lastMsgs = history.slice(-3)
+    const msgSummary = lastMsgs.length > 0
+      ? lastMsgs.map(m => `  [${m.role === 'user' ? 'नागरिक' : 'Bot'}] ${m.content?.slice(0, 60)}`).join('\n')
+      : '  (no prior messages)'
+
+    const now = new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', hour12: false })
+    const locStr = location ? `${location.lat.toFixed(4)}°N ${location.lng.toFixed(4)}°E` : 'GPS unavailable'
+
+    const waText = [
+      `🚨 CivicPulse Emergency Alert`,
+      `──────────────────────────`,
+      `👤 नागरिक: ${userName} | 📞 ${userPhone}`,
+      `🏘️ Ward ${wardId} | District: ${district}`,
+      `⚠️ Risk: ${riskLevel} ${riskScore}`,
+      `📍 Location: ${locStr}`,
+      `🕐 Time: ${now} IST`,
+      `──────────────────────────`,
+      `📋 Last messages:`,
+      msgSummary,
+      `──────────────────────────`,
+      `⚡ Auto-escalated → PHC & CMO (T+30s)`,
+      `📞 Ambulance: 108 | PHC: +91-522-1234567`,
+    ].join('\n')
+
     const waNumber = process.env.WHATSAPP_PHC_NUMBER || '919415000000'
-    const deepLink = `https://wa.me/${waNumber}?text=${encodeURIComponent(
-      `🚨 CivicPulse Emergency\nUser: ${req.user.phone}\nWard: ${req.user.ward_id}`
-    )}`
-    res.json({ deepLink, whatsappNumber: waNumber, success: true })
+    const deepLink = `https://wa.me/${waNumber}?text=${encodeURIComponent(waText)}`
+
+    // Log emergency
+    console.log(`[Emergency] Ward ${wardId} | User ${userPhone} | Risk ${riskLevel} | ${now}`)
+
+    res.json({
+      deepLink,
+      whatsappNumber: waNumber,
+      riskLevel,
+      wardId,
+      escalatedAt: new Date().toISOString(),
+      success: true,
+    })
   } catch (err) { res.status(500).json({ error: err.message }) }
 })
 
