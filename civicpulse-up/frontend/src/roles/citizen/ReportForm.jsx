@@ -5,6 +5,7 @@ import toast from 'react-hot-toast'
 import useReportStore from '../../store/reportStore'
 import useAuthStore from '../../store/authStore'
 import VoiceReporter from '../../components/VoiceReporter'
+import CameraCapture from '../../components/CameraCapture'
 
 const CATEGORIES = [
   { id: 'drain', emoji: '🚰', label: 'नाली बंद', sublabel: 'Blocked Drain' },
@@ -20,12 +21,14 @@ export default function ReportForm() {
   const { submitReport, submitting } = useReportStore()
   const { user } = useAuthStore()
   const fileRef = useRef()
+  const galleryRef = useRef()
 
   const [step, setStep] = useState(1)
   const [category, setCategory] = useState('')
   const [description, setDescription] = useState('')
   const [photo, setPhoto] = useState(null)
   const [photoPreview, setPhotoPreview] = useState(null)
+  const [showCamera, setShowCamera] = useState(false)
   const [location, setLocation] = useState(null)
   const [locating, setLocating] = useState(false)
 
@@ -127,15 +130,37 @@ export default function ReportForm() {
             {/* Photo */}
             <div className="form-group">
               <label className="form-label">📷 फोटो (वैकल्पिक)</label>
+              {/* Camera — opens device camera directly */}
               <input type="file" accept="image/*" capture="environment" ref={fileRef} style={{ display: 'none' }} onChange={handlePhoto} />
+              {/* Gallery — lets user pick existing photo */}
+              <input type="file" accept="image/*" ref={galleryRef} style={{ display: 'none' }} onChange={handlePhoto} />
               {photoPreview
                 ? <div style={{ position: 'relative' }}>
                     <img src={photoPreview} style={{ width: '100%', borderRadius: 'var(--radius-sm)', maxHeight: 200, objectFit: 'cover' }} alt="preview" />
                     <button style={{ position: 'absolute', top: 8, right: 8, background: 'rgba(0,0,0,0.5)', color: 'white', border: 'none', borderRadius: '50%', width: 28, height: 28, cursor: 'pointer' }} onClick={() => { setPhoto(null); setPhotoPreview(null) }}>✕</button>
                   </div>
-                : <button className="btn btn-outline btn-full" onClick={() => fileRef.current.click()}>📷 फोटो खींचें / लोड करें</button>
+                : <div style={{ display: 'flex', gap: '0.75rem' }}>
+                    <button className="btn btn-primary" style={{ flex: 1 }} onClick={() => setShowCamera(true)}>
+                      📸 Camera
+                    </button>
+                    <button className="btn btn-outline" style={{ flex: 1 }} onClick={() => galleryRef.current.click()}>
+                      🖼️ Gallery
+                    </button>
+                  </div>
               }
             </div>
+
+            {/* Live webcam overlay */}
+            {showCamera && (
+              <CameraCapture
+                onCapture={(file) => {
+                  setPhoto(file)
+                  setPhotoPreview(URL.createObjectURL(file))
+                  setShowCamera(false)
+                }}
+                onClose={() => setShowCamera(false)}
+              />
+            )}
 
             {/* Location */}
             <div className="form-group">
