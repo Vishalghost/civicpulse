@@ -1,0 +1,7 @@
+{
+  "name": "civicpulse-up-root",
+  "private": true,
+  "scripts": {
+    "build": "cd frontend && npm install && npm run build && cd .. && rm -rf dist && cp -r frontend/dist dist"
+  }
+}
