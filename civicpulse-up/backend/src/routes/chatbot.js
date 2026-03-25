@@ -1,6 +1,5 @@
 const express = require('express')
 const router = express.Router()
-const { GoogleGenerativeAI } = require('@google/generative-ai')
 const { authMiddleware } = require('../middleware/auth')
 const sqliteDb = require('../db/sqlite')
 
@@ -31,60 +30,59 @@ router.post('/message', authMiddleware, async (req, res) => {
       return res.json({ reply, emergency: true })
     }
 
-    // Try Gemini — direct v1beta REST fetch (bypasses SDK model name mangling)
-    const geminiKey = req.headers['x-gemini-key'] || process.env.GEMINI_API_KEY
-    if (geminiKey) {
+    // Try DeepSeek — OpenAI-compatible API
+    const deepseekKey = req.headers['x-ai-key'] || process.env.DEEPSEEK_API_KEY
+    if (deepseekKey) {
       try {
         const wardCtx = `User is in Ward ${ward_id || req.user.ward_id || 1}, District ${req.user.district || 'Lucknow'}.`
-        const historyParts = history.slice(-6).map(h => ({
-          role: h.role === 'user' ? 'user' : 'model',
-          parts: [{ text: h.content }]
-        }))
+
+        // Build messages array (OpenAI format)
+        const messages = [
+          { role: 'system', content: SYSTEM_PROMPT },
+          ...history.slice(-6).map(h => ({
+            role: h.role === 'user' ? 'user' : 'assistant',
+            content: h.content
+          })),
+          { role: 'user', content: `${wardCtx}\n${message}` }
+        ]
 
         const body = JSON.stringify({
-          system_instruction: { role: 'system', parts: [{ text: SYSTEM_PROMPT }] },
-          contents: [
-            ...historyParts,
-            { role: 'user', parts: [{ text: `${wardCtx}\n${message}` }] }
-          ],
-          generationConfig: { temperature: 0.7, maxOutputTokens: 300 }
+          model: 'deepseek-chat',
+          messages,
+          max_tokens: 300,
+          temperature: 0.7,
+          stream: false
         })
 
-        const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=${geminiKey}`
-        const fetchCall = fetch(geminiUrl, {
+        const fetchCall = fetch('https://api.deepseek.com/v1/chat/completions', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${deepseekKey}`
+          },
           body
         }).then(r => r.json())
 
         const json = await Promise.race([
           fetchCall,
-          new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), 12000))
+          new Promise((_, rej) => setTimeout(() => rej(new Error('DeepSeek timeout 15s')), 15000))
         ])
 
-        if (json.candidates?.[0]?.content?.parts?.[0]?.text) {
-          const reply = json.candidates[0].content.parts[0].text
+        if (json.choices?.[0]?.message?.content) {
+          const reply = json.choices[0].message.content
           logChat(req.user, message, reply, false)
-          return res.json({ reply, emergency: false, source: 'gemini' })
+          return res.json({ reply, emergency: false, source: 'deepseek' })
         }
 
-        const code = json.error?.code
         const errMsg = json.error?.message || JSON.stringify(json).slice(0, 100)
-        if (code === 429) {
-          console.warn('[Chatbot] Gemini 429 — rate/quota limit, using fallback')
-          return res.json({
-            reply: '⏳ AI सेवा व्यस्त है, 1 मिनट बाद पुनः प्रयास करें।\n\n' + fallbackReply(lower, ward_id || req.user.ward_id || 1),
-            emergency: false, source: 'rate_limited'
-          })
-        }
-        console.error('[Chatbot] Gemini error:', errMsg)
+        console.error('[Chatbot] DeepSeek error:', errMsg)
         // Fall through to keyword fallback
 
-      } catch (gemErr) {
-        console.error('[Chatbot] Gemini fetch error:', gemErr.message?.slice(0, 80))
+      } catch (aiErr) {
+        console.error('[Chatbot] DeepSeek fetch error:', aiErr.message?.slice(0, 80))
       }
     } else {
-      console.warn('[Chatbot] No GEMINI_API_KEY — keyword fallback active.')
+      console.warn('[Chatbot] No DEEPSEEK_API_KEY — keyword fallback active.')
     }
 
     // Fallback keyword reply
